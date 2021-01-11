@@ -22,4 +22,5 @@ jobs:
         echo ${{ secrets.ALI_AUTH }} > auth.json
         export PATH=$PATH:.
         image-syncer -h
-        image-syncer --proc=6 --auth=auth.json --images=images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
+        cat auth.json
+        echo image-syncer --proc=6 --auth=auth.json --images=images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
