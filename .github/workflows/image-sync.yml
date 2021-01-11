@@ -19,7 +19,7 @@ jobs:
         tar xzvf image-syncer-v1.3.0-linux-amd64.tar.gz
     - name: Sync Image
       run: |
-        gh auth login --with-token ${{ secrets.GITHUB_TOKEN }}
+        echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
         gh repo clone private
         cp private/rick/config.json auth.json
         export PATH=$PATH:.
