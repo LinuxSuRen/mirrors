@@ -19,6 +19,7 @@ jobs:
         tar xzvf image-syncer-v1.3.0-linux-amd64.tar.gz
     - name: Sync Image
       run: |
-        echo "${{ secrets.ALI_AUTH }}" > auth.json
+        gh repo clone private
+        cp private/rick/config.json auth.json
         export PATH=$PATH:.
         image-syncer --proc=6 --auth=auth.json --images=images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
