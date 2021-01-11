@@ -14,11 +14,12 @@ jobs:
     - uses: actions/checkout@v2
     - name: Download tool
       run: |
-        rm -rf *.tar.gz
+        rm -rf *
         wget https://github.com/AliyunContainerService/image-syncer/releases/download/v1.3.0/image-syncer-v1.3.0-linux-amd64.tar.gz
         tar xzvf image-syncer-v1.3.0-linux-amd64.tar.gz
     - name: Sync Image
       run: |
         echo ${{ secrets.ALI_AUTH }} > auth.json
-        ./image-syncer -h
-        ./image-syncer --proc=6 --auth=./auth.json --images=./images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
+        export PATH=$PATH:.
+        image-syncer -h
+        image-syncer --proc=6 --auth=./auth.json --images=./images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
