@@ -14,7 +14,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Download tool
       run: |
-        rm -rf *
         wget https://github.com/AliyunContainerService/image-syncer/releases/download/v1.3.0/image-syncer-v1.3.0-linux-amd64.tar.gz
         tar xzvf image-syncer-v1.3.0-linux-amd64.tar.gz
     - name: Sync Image
