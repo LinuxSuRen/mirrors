@@ -20,7 +20,7 @@ jobs:
     - name: Sync Image
       run: |
         echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
-        gh repo clone private
+        gh repo clone linuxsuren/private
         cp private/rick/config.json auth.json
         export PATH=$PATH:.
         image-syncer --proc=6 --auth=auth.json --images=images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
