@@ -1,5 +1,5 @@
 {
-    "gcr.io/gitpod-io/ws-scheduler:v0.4.0": "registry.cn-hangzhou.aliyuncs.com/jenkinszh/gitpod-io/ws-scheduler",
+    "gcr.io/gitpod-io/ws-scheduler:v0.4.0": "registry.cn-hangzhou.aliyuncs.com/jenkinszh/gitpod-io-ws-scheduler",
     "gcr.io/gitpod-io/ws-manager:v0.4.0": "registry.cn-hangzhou.aliyuncs.com/jenkinszh/gitpod-io/ws-manager",
     "gcr.io/gitpod-io/registry-facade:v0.4.0": "registry.cn-hangzhou.aliyuncs.com/jenkinszh/gitpod-io/registry-facade",
     "gcr.io/gitpod-io/ws-sync:v0.4.0": "registry.cn-hangzhou.aliyuncs.com/jenkinszh/gitpod-io/ws-sync",
