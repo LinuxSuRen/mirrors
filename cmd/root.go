@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	ver "github.com/linuxsuren/cobra-extension/version"
 	"github.com/spf13/cobra"
 	"io"
 	"io/ioutil"
@@ -22,20 +23,25 @@ func NewMirrorPullCmd() (cmd *cobra.Command) {
 	opt := MirrorOption{}
 
 	cmd = &cobra.Command{
-		Use: "mp",
-		Short: "image mirror pull tool",
-		Example: "mp gcr.io/gitpod-io/ws-scheduler:v0.4.0",
+		Use:   "mp",
+		Short: "Pull image from the mirror",
+		Example: `mp gcr.io/gitpod-io/ws-scheduler:v0.4.0
+
+Please create a pull request to submit it if there's no mirror for your desired image.'`,
 		RunE: opt.runE,
 	}
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opt.ConfigURL, "config", "c", configURL, "The mirror config file path")
+
+	// add version command
+	cmd.AddCommand(ver.NewVersionCmd("linuxsuren", "mirrors", "mp", nil))
 	return
 }
 
 func (o *MirrorOption) runE(cmd *cobra.Command, args []string) (err error) {
 	if len(args) <= 0 {
-		return
+		return cmd.Help()
 	}
 
 	var rps *http.Response
@@ -95,7 +101,6 @@ func execCommand(name string, arg ...string) (err error) {
 		stdout, errStdout = copyAndCapture(os.Stdout, stdoutIn)
 		wg.Done()
 	}()
-
 
 	copyAndCapture(os.Stderr, stderrIn)
 
