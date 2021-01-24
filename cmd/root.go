@@ -20,10 +20,14 @@ type MirrorOption struct {
 
 func NewMirrorPullCmd() (cmd *cobra.Command) {
 	configURL := "https://raw.githubusercontent.com/LinuxSuRen/mirrors/master/images.json"
-	opt := MirrorOption{}
 
 	cmd = &cobra.Command{
-		Use:   "mp",
+		Use: "mp",
+	}
+
+	opt := MirrorOption{}
+	pullCmd := &cobra.Command{
+		Use:   "pull",
 		Short: "Pull image from the mirror",
 		Example: `mp gcr.io/gitpod-io/ws-scheduler:v0.4.0
 
@@ -31,11 +35,12 @@ Please create a pull request to submit it if there's no mirror for your desired 
 		RunE: opt.runE,
 	}
 
-	flags := cmd.Flags()
+	flags := pullCmd.Flags()
 	flags.StringVarP(&opt.ConfigURL, "config", "c", configURL, "The mirror config file path")
 
 	// add version command
-	cmd.AddCommand(ver.NewVersionCmd("linuxsuren", "mirrors", "mp", nil))
+	cmd.AddCommand(ver.NewVersionCmd("linuxsuren", "mirrors", "mp", nil),
+		pullCmd)
 	return
 }
 
