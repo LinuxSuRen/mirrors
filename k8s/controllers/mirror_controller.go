@@ -65,7 +65,7 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		err = client.IgnoreNotFound(err)
 		return
 	}
-	if pod.Status.Phase != v1.PodPending {
+	if pod.Status.Phase == v1.PodSucceeded {
 		return
 	}
 	if _, ok := pod.Labels[filter]; ok {
@@ -125,7 +125,6 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 			}},
 		}}
 		newPod.Spec.NodeName = pod.Spec.NodeName
-		fmt.Println("start to create pod", newPod.String())
 		if err := r.Create(cxt, newPod); err != nil {
 			fmt.Println("failed to create pod", err)
 		}
@@ -134,8 +133,14 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 }
 
 func getID(nodeName, image string) (result string) {
-	result = fmt.Sprintf("%s-%s", nodeName, result)
-	result = strings.ReplaceAll(result, "/", "-")
+	i := strings.Index(image, "@")
+	if i != -1 {
+		image = image[:i]
+	}
+	result = fmt.Sprintf("%s.%s", nodeName, image)
+	result = strings.ReplaceAll(result, "/", "")
+	result = strings.ReplaceAll(result, "@", "")
+	result = strings.ReplaceAll(result, ":", "")
 	return
 }
 
