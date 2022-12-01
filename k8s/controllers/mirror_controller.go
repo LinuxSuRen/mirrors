@@ -79,6 +79,10 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		for key, item := range items {
 			if strings.HasPrefix(container.Image, key) {
 				newImg = strings.ReplaceAll(container.Image, key, item)
+				i := strings.Index(newImg, "@")
+				if i != -1 {
+					newImg = newImg[:i]
+				}
 				skip = false
 				break
 			}
@@ -133,10 +137,6 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 }
 
 func getID(nodeName, image string) (result string) {
-	i := strings.Index(image, "@")
-	if i != -1 {
-		image = image[:i]
-	}
 	result = fmt.Sprintf("%s.%s", nodeName, image)
 	result = strings.ReplaceAll(result, "/", "")
 	result = strings.ReplaceAll(result, "@", "")
