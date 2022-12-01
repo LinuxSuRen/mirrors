@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"strings"
 
@@ -160,6 +159,7 @@ func (r *MirrorReconciler) loadConfigItems() (items map[string]string, err error
 		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller": "gcriotekton/pipeline-controller",
 		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook":    "gcriotekton/pipeline-webhook",
 		"registry.k8s.io/sig-storage":                                        "registry.aliyuncs.com/google_containers",
+		"gcr.io/distroless":                                                  "gcriodistroless",
 	}
 
 	if r.ConfigFilepath != "" {
