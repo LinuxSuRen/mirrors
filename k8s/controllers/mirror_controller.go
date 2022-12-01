@@ -65,51 +65,60 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 
 	containers := pod.Spec.Containers
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, "registry.k8s.io/sig-storage") {
-			fmt.Println("get pod", pod.Namespace, pod.Name, container.Image)
-			newImg := strings.ReplaceAll(container.Image, "registry.k8s.io/sig-storage", "registry.aliyuncs.com/google_containers")
-			if r.isPulling(cxt, getID(pod.Spec.NodeName, newImg)) {
-				continue
-			}
+		var newImg string
+		if strings.HasSuffix(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller") {
+			newImg = strings.ReplaceAll(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller",
+				"gcriotekton/pipeline-controller")
+		} else if strings.HasSuffix(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook") {
+			newImg = strings.ReplaceAll(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook",
+				"gcriotekton/pipeline-webhook")
+		} else if strings.HasPrefix(container.Image, "registry.k8s.io/sig-storage") {
+			newImg = strings.ReplaceAll(container.Image, "registry.k8s.io/sig-storage", "registry.aliyuncs.com/google_containers")
+		} else {
+			continue
+		}
 
-			newPod := &v1.Pod{}
-			newPod.Labels = map[string]string{
-				filter: getID(pod.Spec.NodeName, newImg),
-			}
-			newPod.GenerateName = pod.Name
-			newPod.Namespace = pod.Namespace
-			newPod.Spec.InitContainers = []v1.Container{{
-				Name:    "cache",
-				Image:   "docker.io/docker:20.10.21-alpine3.16",
-				Command: []string{"docker", "pull", newImg},
-				VolumeMounts: []v1.VolumeMount{{
-					Name:      "sock",
-					MountPath: "/var/run/docker.sock",
-				}},
-			}}
-			newPod.Spec.RestartPolicy = v1.RestartPolicyOnFailure
-			newPod.Spec.Volumes = []v1.Volume{{
-				Name: "sock",
-				VolumeSource: v1.VolumeSource{
-					HostPath: &v1.HostPathVolumeSource{
-						Path: "/var/run/docker.sock",
-					},
+		if r.isPulling(cxt, getID(pod.Spec.NodeName, newImg)) {
+			continue
+		}
+
+		newPod := &v1.Pod{}
+		newPod.Labels = map[string]string{
+			filter: getID(pod.Spec.NodeName, newImg),
+		}
+		newPod.GenerateName = pod.Name
+		newPod.Namespace = pod.Namespace
+		newPod.Spec.InitContainers = []v1.Container{{
+			Name:    "cache",
+			Image:   "docker.io/docker:20.10.21-alpine3.16",
+			Command: []string{"docker", "pull", newImg},
+			VolumeMounts: []v1.VolumeMount{{
+				Name:      "sock",
+				MountPath: "/var/run/docker.sock",
+			}},
+		}}
+		newPod.Spec.RestartPolicy = v1.RestartPolicyOnFailure
+		newPod.Spec.Volumes = []v1.Volume{{
+			Name: "sock",
+			VolumeSource: v1.VolumeSource{
+				HostPath: &v1.HostPathVolumeSource{
+					Path: "/var/run/docker.sock",
 				},
-			}}
-			newPod.Spec.Containers = []v1.Container{{
-				Name:    "tag",
-				Image:   "docker.io/docker:20.10.21-alpine3.16",
-				Command: []string{"docker", "tag", newImg, container.Image},
-				VolumeMounts: []v1.VolumeMount{{
-					Name:      "sock",
-					MountPath: "/var/run/docker.sock",
-				}},
-			}}
-			newPod.Spec.NodeName = pod.Spec.NodeName
-			fmt.Println("start to create pod", newPod.String())
-			if err := r.Create(cxt, newPod); err != nil {
-				fmt.Println("failed to create pod", err)
-			}
+			},
+		}}
+		newPod.Spec.Containers = []v1.Container{{
+			Name:    "tag",
+			Image:   "docker.io/docker:20.10.21-alpine3.16",
+			Command: []string{"docker", "tag", newImg, container.Image},
+			VolumeMounts: []v1.VolumeMount{{
+				Name:      "sock",
+				MountPath: "/var/run/docker.sock",
+			}},
+		}}
+		newPod.Spec.NodeName = pod.Spec.NodeName
+		fmt.Println("start to create pod", newPod.String())
+		if err := r.Create(cxt, newPod); err != nil {
+			fmt.Println("failed to create pod", err)
 		}
 	}
 	return
