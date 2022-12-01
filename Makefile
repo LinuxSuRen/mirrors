@@ -10,3 +10,7 @@ build:
 
 copy: build
 	sudo cp bin/mp /usr/local/bin/mp
+
+pre-commit:
+	hd i act
+	act -j build
