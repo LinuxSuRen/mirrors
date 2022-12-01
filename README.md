@@ -12,6 +12,13 @@ There're a couple of things need to be improved:
 * [ ] [containerd](https://containerd.io/) support
 * [ ] an easier way to submit mirror config item
 
+## Contribution
+Please run the following command before you try to create a PR:
+
+```shell
+make pre-commit
+```
+
 ## Mirror of GitHub
 * https://hub.fastgit.org/
 * https://github.com.cnpmjs.org/
