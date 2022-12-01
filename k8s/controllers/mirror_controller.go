@@ -59,19 +59,22 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 	if pod.Status.Phase != v1.PodPending {
 		return
 	}
+	if _, ok := pod.Labels[filter]; ok {
+		return
+	}
 
 	containers := pod.Spec.Containers
 	for _, container := range containers {
 		if strings.HasPrefix(container.Image, "registry.k8s.io/sig-storage") {
 			fmt.Println("get pod", pod.Namespace, pod.Name, container.Image)
 			newImg := strings.ReplaceAll(container.Image, "registry.k8s.io/sig-storage", "registry.aliyuncs.com/google_containers")
-			if r.isPulling(cxt, fmt.Sprintf("%s-%s", pod.Spec.NodeName, newImg)) {
+			if r.isPulling(cxt, getID(pod.Spec.NodeName, newImg)) {
 				continue
 			}
 
 			newPod := &v1.Pod{}
 			newPod.Labels = map[string]string{
-				filter: pod.Name,
+				filter: getID(pod.Spec.NodeName, newImg),
 			}
 			newPod.GenerateName = pod.Name
 			newPod.Namespace = pod.Namespace
@@ -84,6 +87,7 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 					MountPath: "/var/run/docker.sock",
 				}},
 			}}
+			newPod.Spec.RestartPolicy = v1.RestartPolicyOnFailure
 			newPod.Spec.Volumes = []v1.Volume{{
 				Name: "sock",
 				VolumeSource: v1.VolumeSource{
@@ -108,6 +112,12 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 			}
 		}
 	}
+	return
+}
+
+func getID(nodeName, image string) (result string) {
+	result = fmt.Sprintf("%s-%s", nodeName, result)
+	result = strings.ReplaceAll(result, "/", "-")
 	return
 }
 
