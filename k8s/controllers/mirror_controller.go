@@ -74,15 +74,16 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 
 	containers := pod.Spec.Containers
 	for _, container := range containers {
+		if strings.Contains(container.Image, "@") {
+			// cannot tag an image with digest
+			continue
+		}
+
 		var newImg string
 		skip := true
 		for key, item := range items {
 			if strings.HasPrefix(container.Image, key) {
 				newImg = strings.ReplaceAll(container.Image, key, item)
-				i := strings.Index(newImg, "@")
-				if i != -1 {
-					newImg = newImg[:i]
-				}
 				skip = false
 				break
 			}
