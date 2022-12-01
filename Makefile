@@ -14,3 +14,6 @@ copy: build
 pre-commit:
 	hd i act
 	act -j build
+
+install-hd:
+	curl https://linuxsuren.github.io/tools/install.sh|bash
