@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -31,8 +33,9 @@ import (
 // MirrorReconciler reconciles a Mirror object
 type MirrorReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log            logr.Logger
+	Scheme         *runtime.Scheme
+	ConfigFilepath string
 }
 
 const filter = "mirrors"
@@ -51,6 +54,12 @@ const filter = "mirrors"
 func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (result ctrl.Result, err error) {
 	_ = r.Log.WithValues("mirror", req.NamespacedName)
 
+	// load mirror config items
+	var items map[string]string
+	if items, err = r.loadConfigItems(); err != nil {
+		return
+	}
+
 	pod := &v1.Pod{}
 	if err = r.Get(cxt, req.NamespacedName, pod); err != nil {
 		err = client.IgnoreNotFound(err)
@@ -66,15 +75,15 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 	containers := pod.Spec.Containers
 	for _, container := range containers {
 		var newImg string
-		if strings.HasSuffix(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller") {
-			newImg = strings.ReplaceAll(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller",
-				"gcriotekton/pipeline-controller")
-		} else if strings.HasSuffix(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook") {
-			newImg = strings.ReplaceAll(container.Image, "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook",
-				"gcriotekton/pipeline-webhook")
-		} else if strings.HasPrefix(container.Image, "registry.k8s.io/sig-storage") {
-			newImg = strings.ReplaceAll(container.Image, "registry.k8s.io/sig-storage", "registry.aliyuncs.com/google_containers")
-		} else {
+		skip := true
+		for key, item := range items {
+			if strings.HasPrefix(container.Image, key) {
+				newImg = strings.ReplaceAll(container.Image, key, item)
+				skip = false
+				break
+			}
+		}
+		if skip {
 			continue
 		}
 
@@ -136,6 +145,25 @@ func (r *MirrorReconciler) isPulling(ctx context.Context, name string) (ok bool)
 		filter: name,
 	}); err == nil {
 		ok = len(podList.Items) > 0
+	}
+	return
+}
+
+func (r *MirrorReconciler) loadConfigItems() (items map[string]string, err error) {
+	items = map[string]string{
+		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller": "gcriotekton/pipeline-controller",
+		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook":    "gcriotekton/pipeline-webhook",
+		"registry.k8s.io/sig-storage":                                        "registry.aliyuncs.com/google_containers",
+	}
+
+	if r.ConfigFilepath != "" {
+		var data []byte
+		if data, err = os.ReadFile(r.ConfigFilepath); err == nil {
+			err = yaml.Unmarshal(data, &items)
+		} else {
+			// ignore the error if file not found
+			err = nil
+		}
 	}
 	return
 }
