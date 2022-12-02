@@ -16,8 +16,6 @@ jobs:
         tar xzvf image.tar.gz
     - name: Sync Image
       run: |
-        git clone https://linuxsuren:${{ secrets.GH_PASS }}@github.com/LinuxSuRen/private
-        cp private/rick/config.json auth.json
-        ls -ahl
+        echo ${{ secrets.CONFIG }} > auth.json
         export PATH=$PATH:.
         image-syncer --proc=6 --auth=auth.json --images=images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3

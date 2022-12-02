@@ -96,6 +96,15 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Mirror")
 		os.Exit(1)
 	}
+	if err = (&controllers.InvadeReconciler{
+		Client:         mgr.GetClient(),
+		Log:            ctrl.Log.WithName("deploy-invade").WithName("Mirror"),
+		Scheme:         mgr.GetScheme(),
+		ConfigFilepath: "/var/data/mirrors",
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Mirror")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
