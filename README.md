@@ -6,8 +6,15 @@ Install it via: `brew install linuxsuren/linuxsuren/mp`
 
 Pull image from mirror: `mp gcr.io/gitpod-io/ws-scheduler:v0.4.0`
 
+# Run as Kubernetes Operator
+Install it via the following command:
+
+```shell
+kubectl apply -f https://github.com/LinuxSuRen/mirrors/releases/latest/download/controller.yaml
+```
+
 # TODO
-There're a couple of things need to be improved:
+There are a couple of things need to be improved:
 
 * [ ] [containerd](https://containerd.io/) support
 * [ ] an easier way to submit mirror config item

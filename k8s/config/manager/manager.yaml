@@ -72,6 +72,9 @@ spec:
         - --leader-elect
         image: ghcr.io/linuxsuren/mirrors/controller:latest
         name: manager
+        volumeMounts:
+          - mountPath: /var/data
+            name: mirror-config
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -98,5 +101,9 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
+      volumes:
+        - name: mirror-config
+          configMap:
+            name: mirror-config
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

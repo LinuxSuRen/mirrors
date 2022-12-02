@@ -71,14 +71,15 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 	containers := deploy.Spec.Template.Spec.Containers
 	needUpdate := false
 	for i, container := range containers {
-		if !strings.Contains(container.Image, "@") {
+		imageName := container.Image
+		if !strings.Contains(imageName, "@") {
 			// only take care of the image with digest
 			continue
 		}
 
 		for key, item := range items {
-			if strings.HasPrefix(container.Image, key) {
-				newImg := strings.ReplaceAll(container.Image, key, item)
+			if strings.HasPrefix(imageName, key) {
+				newImg := strings.ReplaceAll(imageName, key, item)
 
 				// remove digest
 				index := strings.Index(newImg, "@")
