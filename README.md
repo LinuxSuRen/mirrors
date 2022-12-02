@@ -4,7 +4,13 @@ Collection of all kinds of mirrors
 # Get started
 Install it via: `brew install linuxsuren/linuxsuren/mp`
 
-Pull image from mirror: `mp gcr.io/gitpod-io/ws-scheduler:v0.4.0`
+or via [hd](https://github.com/LinuxSuRen/http-downloader):
+
+```shell
+hd i mp
+```
+
+Pull image from mirror: `mp pull gcr.io/gitpod-io/ws-scheduler:v0.4.0`
 
 # Run as Kubernetes Operator
 Install it via the following command:
