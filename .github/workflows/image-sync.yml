@@ -16,6 +16,6 @@ jobs:
         tar xzvf image.tar.gz
     - name: Sync Image
       run: |
-        echo ${{ secrets.CONFIG }} > auth.json
+        echo ${{ secrets.CONFIG }} | base64 -d > auth.json
         export PATH=$PATH:.
         image-syncer --proc=6 --auth=auth.json --images=images.json --namespace=jenkinszh --registry=registry.cn-beijing.aliyuncs.com --retries=3
