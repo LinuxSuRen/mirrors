@@ -2,6 +2,7 @@ apiVersion: v1
 data:
   mirrors: |
     gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller: gcriotekton/pipeline-controller
+    gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/entrypoint: gcriotekton/pipeline-entrypoint
 kind: ConfigMap
 metadata:
   name: mirror-config

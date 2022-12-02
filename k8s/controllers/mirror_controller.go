@@ -73,6 +73,7 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 	}
 
 	containers := pod.Spec.Containers
+	containers = append(containers, pod.Spec.InitContainers...)
 	for _, container := range containers {
 		if strings.Contains(container.Image, "@") {
 			// cannot tag an image with digest
@@ -95,45 +96,49 @@ func (r *MirrorReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		if r.isPulling(cxt, getID(pod.Spec.NodeName, newImg)) {
 			continue
 		}
-
-		newPod := &v1.Pod{}
-		newPod.Labels = map[string]string{
-			filter: getID(pod.Spec.NodeName, newImg),
-		}
-		newPod.GenerateName = pod.Name
-		newPod.Namespace = pod.Namespace
-		newPod.Spec.InitContainers = []v1.Container{{
-			Name:    "cache",
-			Image:   "docker.io/docker:20.10.21-alpine3.16",
-			Command: []string{"docker", "pull", newImg},
-			VolumeMounts: []v1.VolumeMount{{
-				Name:      "sock",
-				MountPath: "/var/run/docker.sock",
-			}},
-		}}
-		newPod.Spec.RestartPolicy = v1.RestartPolicyOnFailure
-		newPod.Spec.Volumes = []v1.Volume{{
-			Name: "sock",
-			VolumeSource: v1.VolumeSource{
-				HostPath: &v1.HostPathVolumeSource{
-					Path: "/var/run/docker.sock",
-				},
-			},
-		}}
-		newPod.Spec.Containers = []v1.Container{{
-			Name:    "tag",
-			Image:   "docker.io/docker:20.10.21-alpine3.16",
-			Command: []string{"docker", "tag", newImg, container.Image},
-			VolumeMounts: []v1.VolumeMount{{
-				Name:      "sock",
-				MountPath: "/var/run/docker.sock",
-			}},
-		}}
-		newPod.Spec.NodeName = pod.Spec.NodeName
+		newPod := createSidePod(pod.Name, pod.Namespace, pod.Spec.NodeName, newImg, container.Image)
 		if err := r.Create(cxt, newPod); err != nil {
 			fmt.Println("failed to create pod", err)
 		}
 	}
+	return
+}
+
+func createSidePod(name, namespace, nodeName, newImg, oldImg string) (newPod *v1.Pod) {
+	newPod = &v1.Pod{}
+	newPod.Labels = map[string]string{
+		filter: getID(nodeName, newImg),
+	}
+	newPod.GenerateName = name
+	newPod.Namespace = namespace
+	newPod.Spec.InitContainers = []v1.Container{{
+		Name:    "cache",
+		Image:   "docker.io/docker:20.10.21-alpine3.16",
+		Command: []string{"docker", "pull", newImg},
+		VolumeMounts: []v1.VolumeMount{{
+			Name:      "sock",
+			MountPath: "/var/run/docker.sock",
+		}},
+	}}
+	newPod.Spec.RestartPolicy = v1.RestartPolicyOnFailure
+	newPod.Spec.Volumes = []v1.Volume{{
+		Name: "sock",
+		VolumeSource: v1.VolumeSource{
+			HostPath: &v1.HostPathVolumeSource{
+				Path: "/var/run/docker.sock",
+			},
+		},
+	}}
+	newPod.Spec.Containers = []v1.Container{{
+		Name:    "tag",
+		Image:   "docker.io/docker:20.10.21-alpine3.16",
+		Command: []string{"docker", "tag", newImg, oldImg},
+		VolumeMounts: []v1.VolumeMount{{
+			Name:      "sock",
+			MountPath: "/var/run/docker.sock",
+		}},
+	}}
+	newPod.Spec.NodeName = nodeName
 	return
 }
 
