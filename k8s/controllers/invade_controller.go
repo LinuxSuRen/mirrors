@@ -53,7 +53,7 @@ type InvadeReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.6.4/pkg/reconcile
 func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (result ctrl.Result, err error) {
-	_ = r.Log.WithValues("mirror", req.NamespacedName)
+	log := r.Log.WithValues("invade", req.NamespacedName)
 
 	// load mirror config items
 	var items map[string]string
@@ -66,6 +66,7 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		err = client.IgnoreNotFound(err)
 		return
 	}
+	log.V(7).Info("process deploy", "nameAndNamespace", req.NamespacedName)
 
 	containers := deploy.Spec.Template.Spec.Containers
 	needUpdate := false
@@ -90,7 +91,8 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		}
 	}
 	if needUpdate {
-		fmt.Println("prepare to update", deploy.Namespace, deploy.Name)
+		log.Info("prepare to update",
+			"deploy", fmt.Sprintf("%s/%s", deploy.Namespace, deploy.Name))
 		err = r.Update(cxt, deploy)
 	}
 	return
