@@ -77,6 +77,11 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		for key, item := range items {
 			if strings.HasPrefix(container.Image, key) {
 				newImg := strings.ReplaceAll(container.Image, key, item)
+
+				// remove digest
+				i := strings.Index(newImg, "@")
+				newImg = newImg[:i]
+
 				deploy.Spec.Template.Spec.Containers[i].Image = newImg
 				needUpdate = true
 				break
