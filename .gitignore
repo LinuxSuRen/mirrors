@@ -27,3 +27,4 @@ Dockerfile.cross
 *.swo
 *~
 k8s/cover.out
+release/

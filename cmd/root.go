@@ -88,8 +88,6 @@ func (o *MirrorOption) runE(cmd *cobra.Command, args []string) (err error) {
 func execCommand(name string, arg ...string) (err error) {
 	command := exec.Command(name, arg...)
 
-	var stdout []byte
-	var errStdout error
 	stdoutIn, _ := command.StdoutPipe()
 	stderrIn, _ := command.StderrPipe()
 	err = command.Start()
@@ -103,7 +101,7 @@ func execCommand(name string, arg ...string) (err error) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		stdout, errStdout = copyAndCapture(os.Stdout, stdoutIn)
+		_, _ = copyAndCapture(os.Stdout, stdoutIn)
 		wg.Done()
 	}()
 

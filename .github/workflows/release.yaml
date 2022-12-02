@@ -28,7 +28,17 @@ jobs:
         args: release --rm-dist
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN_SECRETS }}
-
+    - name: Generate Kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+        ./kustomize build k8s/config/default > release/controller.yaml
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        token: ${{ secrets.GH_TOKEN_SECRETS }}
+        files: |
+          release/controller.yaml
   image:
     runs-on: ubuntu-20.04
     steps:

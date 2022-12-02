@@ -159,6 +159,7 @@ func (r *MirrorReconciler) loadConfigItems() (items map[string]string, err error
 	items = map[string]string{
 		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller": "gcriotekton/pipeline-controller",
 		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook":    "gcriotekton/pipeline-webhook",
+		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/resolvers":  "registry.cn-hangzhou.aliyuncs.com/jenkinszh/tektoncd-pipeline-cmd-resolvers",
 		"registry.k8s.io/sig-storage":                                        "registry.aliyuncs.com/google_containers",
 		"gcr.io/distroless":                                                  "gcriodistroless",
 	}
