@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -89,6 +90,7 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 		}
 	}
 	if needUpdate {
+		fmt.Println("prepare to update", deploy.Namespace, deploy.Name)
 		err = r.Update(cxt, deploy)
 	}
 	return
