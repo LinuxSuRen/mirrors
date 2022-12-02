@@ -105,6 +105,7 @@ func (r *InvadeReconciler) loadConfigItems() (items map[string]string, err error
 		"gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller":   "gcriotekton/triggers-controller",
 		"gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors": "gcriotekton/triggers-interceptors",
 		"gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook":      "gcriotekton/triggers-webhook",
+		"gcr.io/tekton-releases/github.com/tektoncd/dashboard/cmd/dashboard":   "gcriotekton/dashboard-dashboard",
 		"registry.k8s.io/sig-storage":                                          "registry.aliyuncs.com/google_containers",
 		"gcr.io/distroless":                                                    "gcriodistroless",
 	}
