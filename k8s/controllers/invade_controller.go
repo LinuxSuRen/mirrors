@@ -79,8 +79,8 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 				newImg := strings.ReplaceAll(container.Image, key, item)
 
 				// remove digest
-				i := strings.Index(newImg, "@")
-				newImg = newImg[:i]
+				index := strings.Index(newImg, "@")
+				newImg = newImg[:index]
 
 				deploy.Spec.Template.Spec.Containers[i].Image = newImg
 				needUpdate = true
