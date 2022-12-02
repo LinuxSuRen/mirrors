@@ -6,7 +6,6 @@ builds:
   binary: mp
   goarch:
     - amd64
-    - arm64
   goos:
     - windows
     - linux
