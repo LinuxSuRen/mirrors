@@ -100,10 +100,13 @@ func (r *InvadeReconciler) Reconcile(cxt context.Context, req ctrl.Request) (res
 
 func (r *InvadeReconciler) loadConfigItems() (items map[string]string, err error) {
 	items = map[string]string{
-		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller": "gcriotekton/pipeline-controller",
-		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook":    "gcriotekton/pipeline-webhook",
-		"registry.k8s.io/sig-storage":                                        "registry.aliyuncs.com/google_containers",
-		"gcr.io/distroless":                                                  "gcriodistroless",
+		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller":   "gcriotekton/pipeline-controller",
+		"gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook":      "gcriotekton/pipeline-webhook",
+		"gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller":   "gcriotekton/triggers-controller",
+		"gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors": "gcriotekton/triggers-interceptors",
+		"gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook":      "gcriotekton/triggers-webhook",
+		"registry.k8s.io/sig-storage":                                          "registry.aliyuncs.com/google_containers",
+		"gcr.io/distroless":                                                    "gcriodistroless",
 	}
 
 	if r.ConfigFilepath != "" {
