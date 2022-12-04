@@ -3,6 +3,9 @@ data:
   mirrors: |
     gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/controller: gcriotekton/pipeline-controller
     gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/entrypoint: gcriotekton/pipeline-entrypoint
+    gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook: gcriotekton/pipeline-webhook
+    gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/resolvers: gcriotekton/pipeline-resolvers
+    registry.k8s.io/sig-storage: registry.aliyuncs.com/google_containers
 kind: ConfigMap
 metadata:
   name: mirror-config
