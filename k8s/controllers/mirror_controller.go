@@ -147,6 +147,9 @@ func getID(nodeName, image string) (result string) {
 	result = strings.ReplaceAll(result, "/", "")
 	result = strings.ReplaceAll(result, "@", "")
 	result = strings.ReplaceAll(result, ":", "")
+	if len(result) > 63 {
+		result = result[:63]
+	}
 	return
 }
 
