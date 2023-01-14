@@ -6,6 +6,7 @@ data:
     gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/webhook: gcriotekton/pipeline-webhook
     gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/resolvers: gcriotekton/pipeline-resolvers
     registry.k8s.io/sig-storage: registry.aliyuncs.com/google_containers
+    k8s.gcr.io/metrics-server/metrics-server: registry.aliyuncs.com/google_containers/metrics-server
     quay.io: quay.mirrors.ustc.edu.cn
 kind: ConfigMap
 metadata:
