@@ -31,6 +31,10 @@ jobs:
     - name: Generate Kustomize
       run: |
         curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+        currentdir=$(pwd)
+        cd k8s/config/default
+        ${currentdir}/kustomize edit set image ghcr.io/linuxsuren/mirrors/controller:${GITHUB_REF#refs/tags/}
+        cd ${currentdir}
         ./kustomize build k8s/config/default > release/controller.yaml
     - name: Release
       uses: softprops/action-gh-release@v1
