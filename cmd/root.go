@@ -1,10 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	ver "github.com/linuxsuren/cobra-extension/version"
-	"github.com/spf13/cobra"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,10 +11,16 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/namespaces"
+	ver "github.com/linuxsuren/cobra-extension/version"
+	"github.com/spf13/cobra"
 )
 
 type MirrorOption struct {
-	ConfigURL string
+	ConfigURL  string
+	containerd bool
 }
 
 func NewMirrorPullCmd() (cmd *cobra.Command) {
@@ -29,7 +34,9 @@ func NewMirrorPullCmd() (cmd *cobra.Command) {
 	pullCmd := &cobra.Command{
 		Use:   "pull",
 		Short: "Pull image from the mirror",
-		Example: `mp gcr.io/gitpod-io/ws-scheduler:v0.4.0
+		Example: `mp pull gcr.io/gitpod-io/ws-scheduler:v0.4.0
+
+mp pull registry.k8s.io/nfd/node-feature-discovery:v0.10.1 10.121.218.184:30002
 
 Please create a pull request to submit it if there's no mirror for your desired image.'`,
 		RunE: opt.runE,
@@ -37,6 +44,7 @@ Please create a pull request to submit it if there's no mirror for your desired 
 
 	flags := pullCmd.Flags()
 	flags.StringVarP(&opt.ConfigURL, "config", "c", configURL, "The mirror config file path")
+	flags.BoolVarP(&opt.containerd, "containerd", "", false, "The container runtime is containerd")
 
 	// add version command
 	cmd.AddCommand(ver.NewVersionCmd("linuxsuren", "mirrors", "mp", nil),
@@ -44,9 +52,32 @@ Please create a pull request to submit it if there's no mirror for your desired 
 	return
 }
 
+func (o *MirrorOption) pullInContainerd(cmd *cobra.Command, args []string) (err error) {
+	client, err := containerd.New("/run/containerd/containerd.sock")
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	ctx := namespaces.WithNamespace(context.Background(), "example")
+	var image containerd.Image
+	image, err = client.Pull(ctx, args[0], containerd.WithPullUnpack, func(c *containerd.Client, rc *containerd.RemoteContext) error {
+		fmt.Println(".")
+		return nil
+	})
+	cmd.Println(image)
+	return
+}
+
 func (o *MirrorOption) runE(cmd *cobra.Command, args []string) (err error) {
 	if len(args) <= 0 {
 		return cmd.Help()
+	}
+	if o.containerd {
+		return o.pullInContainerd(cmd, args)
+	}
+	if len(args) == 2 {
+		return o.cacheImage(cmd, args)
 	}
 
 	var rps *http.Response
@@ -82,6 +113,20 @@ func (o *MirrorOption) runE(cmd *cobra.Command, args []string) (err error) {
 	execCommand("docker", "pull", mirror)
 
 	execCommand("docker", "tag", mirror, image)
+	return
+}
+
+func (o *MirrorOption) cacheImage(cmd *cobra.Command, args []string) (err error) {
+	src := args[0]
+	target := args[1]
+
+	target = fmt.Sprintf("%s/%s", target, src)
+
+	execCommand("docker", "pull", src)
+
+	execCommand("docker", "tag", src, target)
+
+	execCommand("docker", "push", target)
 	return
 }
 
