@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,11 +10,20 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/cmd/ctr/commands"
+	"github.com/containerd/containerd/cmd/ctr/commands/content"
+	"github.com/containerd/containerd/defaults"
+	"github.com/containerd/containerd/images"
 	"github.com/containerd/containerd/namespaces"
+	"github.com/containerd/containerd/platforms"
 	ver "github.com/linuxsuren/cobra-extension/version"
+	"github.com/opencontainers/image-spec/identity"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"github.com/urfave/cli"
 )
 
 type MirrorOption struct {
@@ -53,19 +61,102 @@ Please create a pull request to submit it if there's no mirror for your desired 
 }
 
 func (o *MirrorOption) pullInContainerd(cmd *cobra.Command, args []string) (err error) {
-	client, err := containerd.New("/run/containerd/containerd.sock")
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+	// client, err := containerd.New("/run/containerd/containerd.sock")
+	// if err != nil {
+	// 	return err
+	// }
+	// defer client.Close()
 
-	ctx := namespaces.WithNamespace(context.Background(), "example")
-	var image containerd.Image
-	image, err = client.Pull(ctx, args[0], containerd.WithPullUnpack, func(c *containerd.Client, rc *containerd.RemoteContext) error {
-		fmt.Println(".")
-		return nil
-	})
-	cmd.Println(image)
+	// ctx := namespaces.WithNamespace(cmd.Context(), "example")
+	// var image containerd.Image
+	// image, err = client.Pull(ctx, args[0], containerd.WithPullUnpack, func(c *containerd.Client, rc *containerd.RemoteContext) error {
+	// 	fmt.Println(".")
+	// 	return nil
+	// })
+	// cmd.Println(image)
+
+	clicmd := cli.Command{
+		Name: "test",
+		Flags: append(commands.RegistryFlags,
+			cli.BoolFlag{
+				Name:  "debug",
+				Usage: "enable debug output in logs",
+			},
+			cli.StringFlag{
+				Name:   "address, a",
+				Usage:  "address for containerd's GRPC server",
+				Value:  defaults.DefaultAddress,
+				EnvVar: "CONTAINERD_ADDRESS",
+			},
+			cli.DurationFlag{
+				Name:  "timeout",
+				Usage: "total timeout for ctr commands",
+			},
+			cli.DurationFlag{
+				Name:  "connect-timeout",
+				Usage: "timeout for connecting to containerd",
+			},
+			cli.StringFlag{
+				Name:   "namespace, n",
+				Usage:  "namespace to use with commands",
+				Value:  namespaces.Default,
+				EnvVar: namespaces.NamespaceEnvVar,
+			}),
+		Action: func(context *cli.Context) error {
+			fmt.Println("here", context.Args(), context.GlobalString("address"))
+			client, ctx, cancel, err := commands.NewClient(context)
+			if err != nil {
+				return err
+			}
+			defer cancel()
+
+			ctx, done, err := client.WithLease(ctx)
+			if err != nil {
+				return err
+			}
+			defer done(ctx)
+
+			config, err := content.NewFetchConfig(ctx, context)
+			if err != nil {
+				return err
+			}
+
+			img, err := content.Fetch(ctx, client, context.Args()[0], config)
+			if err != nil {
+				return err
+			}
+
+			var p []ocispec.Platform
+			p, err = images.Platforms(ctx, client.ContentStore(), img.Target)
+			if err != nil {
+				return fmt.Errorf("unable to resolve image platforms: %w", err)
+			}
+
+			start := time.Now()
+			for _, platform := range p {
+				fmt.Printf("unpacking %s %s...\n", platforms.Format(platform), img.Target.Digest)
+				i := containerd.NewImageWithPlatform(client, img, platforms.Only(platform))
+				err = i.Unpack(ctx, "")
+				if err != nil {
+					return err
+				}
+				if true {
+					diffIDs, err := i.RootFS(ctx)
+					if err != nil {
+						return err
+					}
+					chainID := identity.ChainID(diffIDs).String()
+					fmt.Printf("image chain ID: %s\n", chainID)
+				}
+			}
+			fmt.Printf("done: %s\t\n", time.Since(start))
+			return nil
+		},
+	}
+	app := cli.NewApp()
+	app.Commands = []cli.Command{clicmd}
+	err = app.Run(args)
+	fmt.Println("containerd")
 	return
 }
 
