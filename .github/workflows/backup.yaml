@@ -15,7 +15,7 @@ jobs:
       with:
         go-version: 1.15
       id: go
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v4.2.2
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2.4.1
       with:
@@ -24,7 +24,7 @@ jobs:
   BackupGit:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v4.2.2
     - name: backup
       uses: jenkins-zh/git-backup-actions@v0.0.8
       env:
